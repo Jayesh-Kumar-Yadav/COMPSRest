@@ -1,0 +1,12 @@
+README.rst
+setup.py
+compsrest/__init__.py
+compsrest/collections.py
+compsrest/views.py
+compsrest.egg-info/PKG-INFO
+compsrest.egg-info/SOURCES.txt
+compsrest.egg-info/dependency_links.txt
+compsrest.egg-info/entry_points.txt
+compsrest.egg-info/not-zip-safe
+compsrest.egg-info/requires.txt
+compsrest.egg-info/top_level.txt

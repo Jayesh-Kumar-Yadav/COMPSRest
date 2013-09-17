@@ -1,0 +1,11 @@
+setup.py
+comps_rest.egg-info/PKG-INFO
+comps_rest.egg-info/SOURCES.txt
+comps_rest.egg-info/dependency_links.txt
+comps_rest.egg-info/entry_points.txt
+comps_rest.egg-info/not-zip-safe
+comps_rest.egg-info/requires.txt
+comps_rest.egg-info/top_level.txt
+compsrest/__init__.py
+compsrest/collections.py
+compsrest/views.py
