@@ -1,4 +1,6 @@
 from pyramid.view import view_config
+
+from pyramid.renderers import render
 from pyramid.response import Response
 
 from pyramid.exceptions import NotFound
@@ -59,10 +61,16 @@ def crow_layers_get(request):
     if uri in groups:
         layers = []
         for r in request.db['stations'].find({'type': uri}):
-            layers.append({
+            layer = {
                 'name': r['name'],
-                'uri': r['uri']
-            })
+                'uri': r['uri'],
+            }
+            station = verify_station(request, r['uri'])
+            if station is not None:
+                layer['description'] = render('crow_description.mako',
+                                              {'station': station}, request)
+
+            layers.append(layer)
         return layers
     else:
         raise NotFound()
@@ -168,19 +176,7 @@ def layer_kml(request):
 
     station = verify_station(request, station_uri)
     if station is not None:
-        kml = (
-            """<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
-    <Document>
-        <Placemark id="%(uri)s">
-            <name>%(name)s</name>
-            <Point>
-                <coordinates>%(lon)f,%(lat)f,0.0</coordinates>
-            </Point>
-        </Placemark>
-    </Document>
-</kml>""" % {'uri': station['uri'], 'name': station['name'], 'lon': station['location']['coordinates'][0], 'lat': station['location']['coordinates'][1]}  # NOQA
-        )
+        kml = render('layer_kml.mako', {'station': station}, request)
         response = (
             Response(body=kml,
                      content_type="application/vnd.google-earth.kml+xml")
