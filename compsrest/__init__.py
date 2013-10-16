@@ -18,7 +18,8 @@ def main(global_config, **settings):
     config.add_route('crow_layer',
                      '/crow/groups/{group_uri}/layers/{layer_uri}')
     config.add_route('crow_environment_json',
-                     '/crow/groups/{group_uri}/layers/{layer_uri}/env')
+                     '/crow/groups/{group_uri}/layers/'
+                     '{layer_uri}/env')
     config.add_route('layer_kml',
                      '/crow/groups/{group_uri}/layers/{layer_uri}/kml')
 

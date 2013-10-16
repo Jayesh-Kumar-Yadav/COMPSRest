@@ -19,7 +19,7 @@ def crow_description_get(request):
         'name': 'Coastal Ocean Monitoring and Prediction System',
         'abbreviation': 'COMPS',
         'url': 'http://comps.marine.usf.edu',
-        'PIs': 'Robert Weisberg',
+        'PIs': ['Robert Weisberg'],
         'group': {
             'name': 'Ocean Circulation Group',
             'url': 'http://ocg.marine.usf.edu/'
@@ -88,19 +88,20 @@ ignore_keys = ('_id', 'file_id', 'diagnostic_id')
 
 @view_config(route_name="crow_layer", renderer="jsonp")
 def stations_list(request):
+    layer_uri = request.matchdict['layer_uri']
     stations_collection = request.db['stations']
 
-    docs = []
-    for station in stations_collection.find({}, {'_id': 0}):
-
+    station = stations_collection.find_one({'uri': layer_uri})
+    if station is not None:
         # Fill in field records
+        del station['_id']  # do not return the ID
         station['fields'] = []
         env_key_col_name = station['collection'] + '.env.keys'
         for r in request.db[env_key_col_name].find():
             key = r['_id']
             if key not in ignore_keys:
                 key_record = {}
-                key_record['key'] = key
+                key_record['uri'] = key
                 key_part = key.split('-')
                 key_record['name'] = key_part[0].replace('_', ' ')
                 if len(key_part) > 1:
@@ -108,17 +109,14 @@ def stations_list(request):
                 else:
                     key_record['units'] = None
                 station['fields'].append(key_record)
-        docs.append(station)
-
-    return {
-        'ok': True,
-        'data': docs
-    }
+        return station
+    else:
+        raise NotFound('No station found with URI "%s"' % layer_uri)
 
 
 @view_config(route_name="crow_environment_json", renderer="jsonp")
 def environmental_data(request):
-    station_uri = request.matchdict['station_id']
+    station_uri = request.matchdict['layer_uri']
 
     station = verify_station(request, station_uri)
 
