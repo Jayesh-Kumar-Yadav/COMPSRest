@@ -144,26 +144,24 @@ def environmental_data(request):
 
     col_name = '%s.env' % station['collection']
     collection = request.db[col_name]
-    docs = []
+    docs = {}
+
+    for field in fields:
+        docs[field] = []
 
     for d in collection.find({'timestamp': {'$gte': start, '$lte': end}}):
-        record = {}
-        record['unix_timestamp'] = (
+        unix_timestamp = (
             calendar.timegm(d['timestamp'].utctimetuple())
         )
-        record['timestamp'] = d['timestamp'].isoformat()
         for field in fields:
             if field in d:
-                record[field] = d[field]
-
-        if len(record) > 2:
-            docs.append(record)
+                docs[field].append([unix_timestamp, d[field]])
 
     return {
         'ok': True,
         'start': start.isoformat(),
         'end': end.isoformat(),
-        'fields': fields,
+        'data': fields,
         'data': docs
     }
 
