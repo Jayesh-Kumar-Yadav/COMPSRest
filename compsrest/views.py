@@ -13,7 +13,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-@view_config(route_name="crow_description", renderer="jsonp")
 def crow_description_get(request):
     return {
         'name': 'Coastal Ocean Monitoring and Prediction System',
@@ -114,6 +113,48 @@ def stations_list(request):
         raise NotFound('No station found with URI "%s"' % layer_uri)
 
 
+@view_config(route_name="crow_index", renderer="jsonp")
+def crow_index_get(request):
+    retVal = {
+        'description': crow_description_get(request),
+        'groups': []
+    }
+
+    for k, v in groups.items():
+        group = v
+        group['layers'] = []
+        for r in request.db['stations'].find({'type': group['uri']}):
+            layer = {
+                'name': r['name'],
+                'uri': r['uri']
+            }
+            station = verify_station(request, r['uri'])
+            if station is not None:
+                layer['description'] = render('crow_description.mako',
+                                              {'station': station}, request)
+
+                layer['fields'] = []
+                env_key_col_name = station['collection'] + '.env.keys'
+                for f in request.db[env_key_col_name].find():
+                    key = f['_id']
+                    if key not in ignore_keys:
+                        key_record = {}
+                        key_record['uri'] = key
+                        key_part = key.split('-')
+                        key_record['name'] = key_part[0].replace('_', ' ')
+                        if len(key_part) > 1:
+                            key_record['units'] = key_part[1].replace('_', ' ')
+                        else:
+                            key_record['units'] = None
+                        layer['fields'].append(key_record)
+
+            group['layers'].append(layer)
+
+        retVal['groups'].append(group)
+
+    return retVal
+
+
 @view_config(route_name="crow_environment_json", renderer="jsonp")
 def environmental_data(request):
     station_uri = request.matchdict['layer_uri']
@@ -155,7 +196,9 @@ def environmental_data(request):
         )
         for field in fields:
             if field in d:
-                docs[field].append([unix_timestamp, d[field]])
+                docs[field].append(
+                    [unix_timestamp, d['timestamp'].isoformat(), d[field]]
+                )
 
     return {
         'ok': True,
