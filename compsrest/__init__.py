@@ -16,9 +16,9 @@ def main(global_config, **settings):
     config.add_route('crow_provider', '/provider')
     config.add_route('crow_layers', '/layers')
     config.add_route('crow_environment_json',
-                     '/layer/{layer_uri}/env')
+                     '/datasets')
     config.add_route('layer_kml',
-                     '/layer/{layer_uri}/kml')
+                     '/kml')
 
     db_url = urlparse(settings['mongo_uri'])
     config.registry.db = pymongo.Connection(
