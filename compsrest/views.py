@@ -135,33 +135,15 @@ def environmental_data(request):
 
 
 def get_latest_readings(request, station):
-    col_name = '%s.env' % station['collection']
-    col_keys_name = '%s.env.keys' % station['collection']
+    col_name = '%s.env.latest' % station['collection']
 
-    data = {}
-    collection = request.db[col_name]
-    keys_cursor = request.db[col_keys_name].find({})
-    for key_doc in keys_cursor:
-        key_name = key_doc["_id"]
-        value_doc = collection.find_one(
-            {key_name: {'$exists': True}},
-            sort=[('timestamp', -1)],
-            hint=[('timestamp', 1)]
-        )
-        if value_doc:
-            key_parts = key_name.split('-')
-            parameter = key_parts[0].replace('_', ' ').title()
-            if len(key_parts) > 1:
-                units = key_parts[1].replace('_', ' ')
-            else:
-                units = None
-
-            data[key_name] = {
-                'timestamp': value_doc['timestamp'],
-                'value': value_doc[key_name],
-                'parameter': parameter,
-                'units': units
-            }
+    data = request.db[col_name].find_one({})
+    if data is not None:
+        for key in ignore_keys:
+            if key in data:
+                del data[key]
+    else:
+        data = {}
 
     return data
 
