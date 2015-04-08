@@ -1,0 +1,27 @@
+# comps-rest.conf
+
+description "COMPS Station REST Endpoint"
+
+start on started networking
+stop on runlevel [016]
+
+setuid mlindemu
+
+
+limit nofile 1000000 1000000
+
+
+console log
+
+env PATH=/usr/bin
+
+script
+  cd /home/mlindemu/comps-rest
+  . bin/activate
+
+  cd compsrest
+  gunicorn --log-file=- --debug --paste compsrest.ini
+end script
+
+respawn
+
